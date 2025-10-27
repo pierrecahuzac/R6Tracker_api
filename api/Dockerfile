@@ -1,12 +1,12 @@
-FROM node:22-alpine
+FROM node:22-alpine3.22
 
 WORKDIR /usr/src/api
 
 COPY package*.json ./
 
-COPY ./prisma ./prisma/
+COPY prisma ./prisma/
 
-RUN npm i
+RUN npm i ci
 
 RUN npm i -g nodemon
 
@@ -14,5 +14,6 @@ COPY . .
 
 RUN npx prisma generate
 
+EXPOSE 3000
 
 CMD ["nodemon", "server.js"]

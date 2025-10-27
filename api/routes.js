@@ -6,6 +6,7 @@ const MapRouter= require("./src/map/router");
 const OperatorRouter= require("./src/operator/router");
 const GameRouter= require("./src/game/router");
 const RoundRouter= require("./src/round/router");
+const AuthRouter= require("./src/auth/router");
 
 
   router.get("/api/test", (req, res) => { // <-- AJOUTEZ CETTE LIGNE
@@ -21,6 +22,7 @@ router.use("/api/map", MapRouter);
 router.use("/api/operator", OperatorRouter);
 router.use("/api/game", GameRouter);
 router.use("/api/round", RoundRouter);
+router.use("/api/auth", AuthRouter);
 
 
 
