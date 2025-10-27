@@ -1,0 +1,45 @@
+services:
+  api_r6tracker:
+    container_name: api_r6tracker
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      
+    volumes:
+      - ./api:/usr/src/api
+      # - /usr/src/api/node_modules
+      
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}?schema=public
+    
+    restart: unless-stopped
+    
+    networks:
+      - R6Tracker
+    
+    
+      
+  db_r6Tracker:
+    image: postgres:15-alpine
+    container_name: db_r6Tracker
+    restart: always
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DB_HOST: ${DB_HOST}
+      
+    networks:
+      - R6Tracker
+      
+   
+
+networks:
+  R6Tracker: {}
+
+volumes:
+  postgres_data:

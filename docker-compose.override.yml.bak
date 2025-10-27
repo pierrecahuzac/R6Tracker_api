@@ -1,0 +1,47 @@
+# Surcharge pour l'intégration Traefik en production
+
+services:
+  api_r6tracker:
+    # IMPORTANT : Ajouter le réseau traefik-network en PLUS du réseau interne
+    networks:
+      - R6Tracker        # Réseau interne (pour communiquer avec la BDD)
+      - traefik-network  # Réseau externe (pour Traefik)
+      
+    labels:
+      # Active Traefik pour ce conteneur
+      "traefik.enable": "true"
+      
+      # Spécifie explicitement le réseau à utiliser (obligatoire si plusieurs réseaux)
+      "traefik.docker.network": "traefik-network"
+      
+      # ============================================
+      # MIDDLEWARE : Redirection HTTP → HTTPS
+      # ============================================
+      "traefik.http.middlewares.https-redirect.redirectscheme.scheme": "https"
+      "traefik.http.middlewares.https-redirect.redirectscheme.permanent": "true"
+      
+      # ============================================
+      # ROUTEUR HTTP (port 80) : Redirection uniquement
+      # ============================================
+      "traefik.http.routers.api-r6tracker-http.rule": "Host(`${VPS_API_URL}`) && PathPrefix(`/api`)"
+      "traefik.http.routers.api-r6tracker-http.entrypoints": "web"
+      "traefik.http.routers.api-r6tracker-http.middlewares": "https-redirect"
+
+      # ============================================
+      # ROUTEUR HTTPS (port 443) : Trafic sécurisé
+      # Le /api est CONSERVÉ et transmis à Express
+      # ============================================
+      "traefik.http.routers.api-r6tracker.rule": "Host(`${VPS_API_URL}`) && PathPrefix(`/api`)"
+      "traefik.http.routers.api-r6tracker.entrypoints": "websecure"
+      "traefik.http.routers.api-r6tracker.tls": "true"
+      "traefik.http.routers.api-r6tracker.tls.certresolver": "letsencrypt"
+      
+      # ============================================
+      # SERVICE : Configuration du backend
+      # ============================================
+      "traefik.http.services.api-r6tracker.loadbalancer.server.port": "5000"
+      "traefik.http.services.api-r6tracker.loadbalancer.server.scheme": "http"
+      
+networks:
+  traefik-network:
+    external: true

@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Platform {
+  id       String          @id @default(uuid())
+  name     String          @unique
+  games    Game[]
+  accounts PlayerAccount[]
+}
+
+model Side {
+  id         String     @id @default(uuid())
+  name       String     @unique
+  label      String
+  operators  Operator[]
+  roundsSide Round[]    @relation("RoundSide")
+}
+
+model GameMode {
+  id    String @id @default(uuid())
+  name  String @unique
+  games Game[]
+}
+
+// model Result {
+//   id    String @id @default(uuid())
+//   name  String @unique
+//   label String
+//   games Game[]
+// }
+
+model Player {
+  id        String          @id @default(uuid())
+  createdAt DateTime        @default(now())
+  email     String          @unique
+  username  String
+  password  String
+  accounts  PlayerAccount[]
+  games     Game[]
+  rounds    Round[]
+}
+
+model PlayerAccount {
+  id         String   @id @default(uuid())
+  player     Player   @relation(fields: [playerId], references: [id])
+  playerId   String
+  platform   Platform @relation(fields: [platformId], references: [id])
+  platformId String
+  gamertag   String
+  externalId String?
+  games      Game[]
+
+  @@unique([playerId, platformId])
+  @@index([platformId, gamertag])
+}
+
+model Map {
+  id     String @id @default(uuid())
+  name   String @unique
+  nameFr String @unique
+  url String @unique
+  games  Game[]
+}
+
+model Operator {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  side   Side    @relation(fields: [sideId], references: [id])
+  sideId String
+  image  String?
+  icon   String
+  rounds Round[]
+}
+
+model Game {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  date      DateTime?
+
+  player   Player? @relation(fields: [playerId], references: [id])
+  playerId String?
+
+  map   Map?    @relation(fields: [mapId], references: [id])
+  mapId String?
+
+  mode   GameMode? @relation(fields: [modeId], references: [id])
+  modeId String?
+
+  platform   Platform? @relation(fields: [platformId], references: [id])
+  platformId String?
+
+  account       PlayerAccount? @relation(fields: [accountId], references: [id])
+  accountId     String?
+  playerScore   Int?           @default(0)
+  opponentScore Int?           @default(0)
+  // result        Result?        @relation(fields: [resultId], references: [id])
+  // resultId      String?
+  status        String?
+  overtime      Boolean?       @default(false)
+  roundNumber   Int?           @default(0)
+  rounds        Round[]
+  isFinished    Boolean        @default(false)
+
+  @@index([playerId])
+  @@index([mapId])
+  @@index([modeId])
+  @@index([platformId])
+  @@index([date])
+}
+
+model Round {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  game     Game   @relation(fields: [gameId], references: [id])
+  gameId   String
+  player   Player @relation(fields: [playerId], references: [id])
+  playerId String
+
+  roundNumber Int
+
+  side   Side   @relation("RoundSide", fields: [sideId], references: [id])
+  sideId String
+
+  operator     Operator? @relation(fields: [operatorId], references: [id])
+  operatorId   String?
+  roundResult  String?
+  kills        Int       @default(0)
+  death        Boolean   @default(false)
+  assists      Int       @default(0)
+  disconnected Boolean   @default(false)
+  points       Int       @default(0)
+  isFinished   Boolean   @default(false)
+
+  @@unique([gameId, roundNumber])
+  @@index([gameId])
+}

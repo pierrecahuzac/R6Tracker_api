@@ -1,0 +1,55 @@
+services:
+  api:
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    volumes:
+      - ./api:/usr/src/api
+      - /usr/src/api/node_modules
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    networks:
+      - R6Tracker
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  database:
+    container_name: database
+    image: postgres:18.0-alpine
+    restart: always
+    ports:
+      - 5433:5432
+    networks:
+      - R6Tracker
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer_r6tracker:
+    container_name: adminer_r6tracker
+    image: adminer
+    restart: always
+    ports:
+      - 5558:8080
+    networks:
+      - R6Tracker
+    depends_on:
+      - database
+
+networks:
+  R6Tracker:
+    driver: bridge
+
+volumes:
+  postgres_data:
