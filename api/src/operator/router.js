@@ -1,14 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const OperatorController = require("./controller");
+const authMiddleware = require("../middleware/authMiddleware");
 
 
 router.get(
-  "/getAll",
+  "/getAll", authMiddleware.decodeJWT,
   OperatorController.getAll
 );
 router.get(
   "/getAllOperatorsBySide/:side",
+  authMiddleware.decodeJWT,
   OperatorController.getAllOperatorsBySide
 );
 

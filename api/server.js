@@ -15,30 +15,28 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.disable("x-powered-by");
-
-
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 let corsOptions;
 
 if (process.env.NODE_ENV === "development") {
-
   const originsAllowed = [
     process.env.APP_URL,
     process.env.DEVELOPPEMENT_APP_URL,
     process.env.LOCALHOST_APP_URL,
-
-  ].filter(Boolean); 
+  ].filter(Boolean);
 
   corsOptions = {
     origin: function (origin, callback) {
-      
       const normalizedOrigin = origin ? origin.replace(/\/$/, "") : null;
-      
-      
+
       if (!origin || !normalizedOrigin) return callback(null, true);
 
-
-      const normalizedAllowed = originsAllowed.map(url => url.replace(/\/$/, ""));
+      const normalizedAllowed = originsAllowed.map((url) =>
+        url.replace(/\/$/, "")
+      );
 
       if (normalizedAllowed.includes(normalizedOrigin)) {
         callback(null, true);
@@ -50,18 +48,15 @@ if (process.env.NODE_ENV === "development") {
     optionsSuccessStatus: 200,
     credentials: true,
   };
-} else {  
-  corsOptions = {   
+} else {
+  corsOptions = {
     origin: process.env.PROD_APP_URL,
     optionsSuccessStatus: 200,
     credentials: true,
   };
 }
 
-
-
 app.use(cors(corsOptions));
-
 
 app.use(routes);
 app.listen(port, "0.0.0.0", () => {

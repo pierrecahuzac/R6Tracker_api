@@ -76,7 +76,7 @@ const GameController = {
         updateData.roundNumber = parseInt(roundNumber, 10);
       }
 
-      // 🚨 GÉRER LES CAS OÙ AUCUNE DONNÉE N'EST FOURNIE :
+ 
       if (Object.keys(updateData).length === 0) {
         return res
           .status(400)
