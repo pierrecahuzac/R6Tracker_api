@@ -52,6 +52,7 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm install --only=production
 RUN npm install -g pm2
+COPY ./prisma ./prisma
 # 3. Copie du code source complet de l'étape builder (y compris les fichiers JS interprétés)
 COPY --from=builder /usr/src/api/src /usr/src/api/src
 COPY --from=builder /usr/src/api/server.js /usr/src/api/server.js
