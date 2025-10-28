@@ -1,69 +1,68 @@
 services:
   api_r6tracker:
     container_name: api_r6tracker
+    profiles:
+      - production
     build:
       context: ./api
       dockerfile: Dockerfile
     ports:
       - 5000:5000
-    volumes:
-      - ./api:/usr/src/api
-      - /usr/src/api/node_modules
-
+      
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}?schema=public
+    labels:
+     
+      "traefik.enable": "true"
+
+      "traefik.docker.network": "traefik-network"
+
+      
+      "traefik.http.middlewares.https-redirect.redirectscheme.scheme": "https"
+      "traefik.http.middlewares.https-redirect.redirectscheme.permanent": "true"
+
+      "traefik.http.routers.api-r6tracker-http.rule": "Host(`${VPS_API_URL}`) && PathPrefix(`/api`)"
+      "traefik.http.routers.api-r6tracker-http.entrypoints": "web"
+      "traefik.http.routers.api-r6tracker-http.middlewares": "https-redirect"
+
+      "traefik.http.routers.api-r6tracker.rule": "Host(`${VPS_API_URL}`) && PathPrefix(`/api`)"
+      "traefik.http.routers.api-r6tracker.entrypoints": "websecure"
+      "traefik.http.routers.api-r6tracker.tls": "true"
+      "traefik.http.routers.api-r6tracker.tls.certresolver": "letsencrypt"
+
+      "traefik.http.services.api-r6tracker.loadbalancer.server.port": "5000"
+      "traefik.http.services.api-r6tracker.loadbalancer.server.scheme": "http"
 
     restart: unless-stopped
-
     networks:
       - R6Tracker
+      - traefik-network
 
   db_r6Tracker:
     image: postgres:15-alpine
     container_name: db_r6Tracker
     restart: always
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    profiles: [development, production]
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       DB_HOST: ${DB_HOST}
-
     networks:
       - R6Tracker
-    healthcheck: # Ajoutez ceci pour que Docker sache quand la DB est prête
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U R6Tracker"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # adminer:
-  #   container_name: adminer_r6Tracker
-  #   image: adminer
-  #   ports:
-  #     - 9090:8080
-  #   networks:
-  #     - R6Tracker
-  #   profiles: [development]
-
-  prisma_studio:
-    container_name: prisma_studio
-    image: timothyjmiller/prisma-studio
-    ports:
-      - 5555:5555
-    env_file:
-      - .env
-    networks:
-      - R6Tracker
-    depends_on:
-      db_r6Tracker:
-        condition: service_healthy
-
 networks:
   R6Tracker: {}
+  traefik-network:
+    external: true
 
 volumes:
   postgres_data:
