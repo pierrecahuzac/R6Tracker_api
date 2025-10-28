@@ -51,7 +51,7 @@ ENV NODE_ENV=production
 # 2. Copie du package.json et installation UNIQUEMENT des dépendances de production
 COPY package*.json ./
 RUN npm install --only=production
-
+RUN npm install -g pm2
 # 3. Copie du code source complet de l'étape builder (y compris les fichiers JS interprétés)
 COPY --from=builder /usr/src/api/src /usr/src/api/src
 COPY --from=builder /usr/src/api/server.js /usr/src/api/server.js
@@ -64,4 +64,4 @@ COPY --from=builder /usr/src/api/node_modules/.prisma /usr/src/api/node_modules/
 EXPOSE 3000
 
 # Commande de production finale
-CMD ["node", "server.js"]
+CMD ["pm2-runtime", "server.js"]
