@@ -1,20 +1,19 @@
 const express = require("express");
 const router = express.Router();
 const RoundController = require("./controller");
+const authMiddleware = require("../middleware/authMiddleware");
 
-
-router.post(
-  "/create",   
-  RoundController.create
-);
+router.post("/create", RoundController.create);
 router.put(
-  "/update/:roundId",   
+  "/update/:roundId",
+  authMiddleware.decodeJWT,
   RoundController.updateRoundById
 );
 
-router.get("/:gameId", RoundController.findRoundsStatsByGameId)
-
-
-
+router.get(
+  "/:gameId",
+  authMiddleware.decodeJWT,
+  RoundController.findRoundsStatsByGameId
+);
 
 module.exports = router;
