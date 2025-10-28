@@ -9,9 +9,10 @@ router.post("/signup", PlayerController.signup);
 router.post("/login", PlayerController.login);
 router.get("/findById/playerId/:playerId", authMiddleware.decodeJWT, PlayerController.findById);
 
+router.post("/logout/", authMiddleware.decodeJWT,PlayerController.logout);
+
 if (NODE_ENV === "development") {
-  router.get("/logout/:playerId", authMiddleware.decodeJWT, PlayerController.logout);
+  router.get("/logout/", authMiddleware.decodeJWT, PlayerController.logout);
 }
-router.post("/logout/:playerId", authMiddleware.decodeJWT,PlayerController.logout);
 
 module.exports = router;

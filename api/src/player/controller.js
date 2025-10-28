@@ -139,7 +139,7 @@ const PlayerController = {
   },
   logout: async (req, res) => {
     try {
-      console.log(req.cookies);
+      const playerId = req.user.sub
       const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
