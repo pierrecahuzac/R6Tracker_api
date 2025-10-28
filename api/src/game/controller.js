@@ -7,27 +7,27 @@ const GameController = {
     try {
       const playerId = req.body.playerId;
 
-    if (playerId === "undefined") {
-      return;
-    }
+      if (playerId === "undefined") {
+        return;
+      }
 
-    const playerToFind = await prisma.player.findUnique({
-      where: {
-        id: String(playerId),
-      },
-    });
+      const playerToFind = await prisma.player.findUnique({
+        where: {
+          id: String(playerId),
+        },
+      });
 
-    const game = await prisma.game.create({
-      data: {
-        playerId: playerToFind.id,
-      },
-    });
+      const game = await prisma.game.create({
+        data: {
+          playerId: playerToFind.id,
+        },
+      });
 
-    return res.status(201).json(game);
+      return res.status(201).json(game);
     } catch (error) {
       console.log(error);
-          }
-      },
+    }
+  },
 
   updateByGameId: async (req, res) => {
     try {
@@ -83,9 +83,6 @@ const GameController = {
           .json({ message: "Aucune donnée de mise à jour valide fournie." });
       }
 
-      // ===================================================
-      // 4. EXÉCUTION DE LA MISE À JOUR
-      // ===================================================
       const gameToFindAndUpdate = await prisma.game.update({
         where: {
           id: gameId,
@@ -109,6 +106,22 @@ const GameController = {
         },
       });
       return res.status(200).json(games);
+    } catch (error) {
+      throw error;
+    }
+  },
+  findByPlayerId: async (req, res) => {
+    try {
+      const playerId = req.params.playerId;
+      const games = await prisma.game.findMany({
+        where: {
+          playerId,
+        },
+      });
+      return res.status(200).json({
+        message: "Games founded",
+        games,
+      });
     } catch (error) {
       throw error;
     }

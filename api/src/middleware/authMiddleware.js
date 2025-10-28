@@ -1,18 +1,22 @@
 const jwt = require("jsonwebtoken");
-const jwtFunctions = require("../jwt/jwtFunctions");
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 require("dotenv").config();
+
 const authMiddleware = {
-  async decodeJWT(req, res, next) {    
-    const { access_token, refresh_token } = req.cookies;
-    let currentAccessToken = access_token;
+  async decodeJWT(req, res, next) {
+    console.log(req.cookies);
+    
+    const { accessToken, refreshToken } = req.cookies;
+    console.log(accessToken, refreshToken);
+
+    let currentAccessToken = accessToken;
     let needsTokenRefresh = false;
 
     if (currentAccessToken) {
       try {
-        const decoded = jwt.verify(currentAccessToken, process.env.JWT_SECRET);        
+        const decoded = jwt.verify(currentAccessToken, process.env.JWT_SECRET);
         req.user = decoded;
         return next();
       } catch (error) {
@@ -43,7 +47,7 @@ const authMiddleware = {
 
     if (needsTokenRefresh) {
       console.warn("Attempting to create a new access token");
-      if (!refresh_token) {
+      if (!refreshToken) {
         // Pas de Refresh Token non plus, impossible de s'authentifier
         console.warn(
           "Authentification: Aucun Refresh Token trouvé pour rafraîchir."
@@ -56,11 +60,10 @@ const authMiddleware = {
 
       try {
         const decodedRefreshToken = jwt.verify(
-          refresh_token,
+          refreshToken,
           process.env.REFRESH_SECRET
         );
-       
-        
+      
         if (!decodedRefreshToken.rid) {
           console.error(
             "Refresh Token ne contient pas de 'rid' pour la vérification de révocation."
@@ -80,7 +83,7 @@ const authMiddleware = {
           console.warn(
             `Refresh Token révoqué détecté (RID: ${decodedRefreshToken.rid}).`
           );
-          res.clearCookie("access_token", {
+          res.clearCookie("accessToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
@@ -108,11 +111,10 @@ const authMiddleware = {
         );
 
         const decoded = jwt.verify(newAccessToken, process.env.JWT_SECRET);
-    
         
+
         req.user = decoded;
-        
-        
+
         return next();
       } catch (error) {
         console.error(

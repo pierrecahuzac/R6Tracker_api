@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  // binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -44,6 +45,8 @@ model Player {
   accounts  PlayerAccount[]
   games     Game[]
   rounds    Round[]
+  language  String          @default("Fr")
+  Token     Token[]
 }
 
 model PlayerAccount {
@@ -64,7 +67,7 @@ model Map {
   id     String @id @default(uuid())
   name   String @unique
   nameFr String @unique
-  url String @unique
+  url    String @unique
   games  Game[]
 }
 
@@ -141,4 +144,14 @@ model Round {
 
   @@unique([gameId, roundNumber])
   @@index([gameId])
+}
+
+model Token {
+  id         String   @id @default(uuid())
+  playerId   String
+  player     Player   @relation(fields: [playerId], references: [id])
+  isRevoked  Boolean  @default(false)
+  tokenValue String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
 }
