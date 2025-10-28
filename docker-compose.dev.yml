@@ -1,0 +1,27 @@
+services:
+  api_r6tracker:
+    container_name: api_r6tracker
+    environment:
+      NODE_ENV: development    
+    volumes:
+      - ./api:/usr/src/api
+      - /usr/src/api/node_modules
+    networks:
+      - R6Tracker       
+  prisma_studio:
+    profiles:
+      - development
+    container_name: prisma_studio
+    image: timothyjmiller/prisma-studio
+    ports:
+      - 5555:5555
+    env_file:
+      - .env
+    networks:
+      - R6Tracker
+    depends_on:
+      db_r6Tracker:
+        condition: service_healthy
+
+
+  
