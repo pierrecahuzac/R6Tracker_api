@@ -8,9 +8,7 @@ const { v4: uuidv4 } = require("uuid");
 const PlayerController = {
   signup: async (req, res) => {
     const { password, email, username } = req.body;
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const playerExists = await prisma.player.findUnique({
       where: {
         email,
@@ -30,16 +28,12 @@ const PlayerController = {
         password: hashedPassword,
       },
     });
-
-    return res.status(201).json(player);
+    console.log(player);
+    
+    return res.status(201).json({message: "player created", player});
   },
 
   login: async (req, res) => {
-    // console.log(process.env.NODE_ENV);
-
-    // const { access_token, refresh_token } = req.cookies;
-    // console.log(access_token, refresh_token);
-
     try {
       const { email, password } = req.body;
       if (!email || !password) {
