@@ -8,28 +8,21 @@ services:
       dockerfile: Dockerfile
     ports:
       - 5000:5000
-      
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}?schema=public
-    labels:
-     
+    env_file:
+      - .env
+    
+    labels:     
       "traefik.enable": "true"
-
-      "traefik.docker.network": "traefik-network"
-
-      
+      "traefik.docker.network": "traefik-network"      
       "traefik.http.middlewares.https-redirect.redirectscheme.scheme": "https"
       "traefik.http.middlewares.https-redirect.redirectscheme.permanent": "true"
-
       "traefik.http.routers.api-r6tracker-http.rule": "Host(`${VPS_API_URL}`) && PathPrefix(`/api`)"
       "traefik.http.routers.api-r6tracker-http.entrypoints": "web"
       "traefik.http.routers.api-r6tracker-http.middlewares": "https-redirect"
-
       "traefik.http.routers.api-r6tracker.rule": "Host(`${VPS_API_URL}`) && PathPrefix(`/api`)"
       "traefik.http.routers.api-r6tracker.entrypoints": "websecure"
       "traefik.http.routers.api-r6tracker.tls": "true"
       "traefik.http.routers.api-r6tracker.tls.certresolver": "letsencrypt"
-
       "traefik.http.services.api-r6tracker.loadbalancer.server.port": "5000"
       "traefik.http.services.api-r6tracker.loadbalancer.server.scheme": "http"
 
@@ -45,12 +38,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     profiles: [development, production]
-
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      DB_HOST: ${DB_HOST}
+    
+    env_file:
+      - .env
+    
     networks:
       - R6Tracker
     healthcheck:

@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 
 const port = 5000;
 
-const Cors = require("cors");
+const cors = require("cors");
 const app = express();
 
 app.use(cookieParser());
@@ -60,7 +60,7 @@ if (process.env.NODE_ENV === "development") {
 
 
 
-app.use(Cors(corsOptions));
+app.use(cors(corsOptions));
 
 
 app.use(routes);
