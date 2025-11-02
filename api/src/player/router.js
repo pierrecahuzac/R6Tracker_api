@@ -13,9 +13,9 @@ router.get(
   PlayerController.findById
 );
 
-if (NODE_ENV === "development") {
-  router.get("/logout/", authMiddleware.decodeJWT, PlayerController.logout);
-}
+// if (NODE_ENV === "development") {
+  // router.get("/logout/", authMiddleware.decodeJWT, PlayerController.logout);
+// }
 router.post("/logout/", authMiddleware.decodeJWT, PlayerController.logout);
 
 module.exports = router;
