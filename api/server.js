@@ -45,8 +45,10 @@ if (process.env.NODE_ENV === "development") {
         callback(new Error("Non autorisé par CORS"), false);
       }
     },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     optionsSuccessStatus: 200,
     credentials: true,
+    
   };
 } else {
   corsOptions = {
