@@ -49,6 +49,7 @@ if (process.env.NODE_ENV === "development") {
     optionsSuccessStatus: 200,
     credentials: true,
     
+
   };
 } else {
   corsOptions = {
