@@ -120,7 +120,6 @@ const RoundController = {
       },
       data: updateData,
     });
-
     return res.status(200).json(gameToFindAndUpdate);
   },
   updateRoundById: async (req, res) => {

@@ -9,7 +9,7 @@ const RoundRouter= require("./src/round/router");
 const AuthRouter= require("./src/auth/router");
 
 
-  router.get("/api/test", (req, res) => { // <-- AJOUTEZ CETTE LIGNE
+  router.get("/api/test", (req, res) => { 
     console.log("Teste DIRECT de l'API");
     return res.json({ status: "OK", message: "TEST OK" });
 })

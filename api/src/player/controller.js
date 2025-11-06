@@ -73,7 +73,7 @@ const PlayerController = {
           payloadAccessToken,
           process.env.JWT_SECRET,
           {
-            expiresIn: 15 * 60 * 1000,
+            expiresIn: "15m",
           }
         );
         const refreshTokenLifetimeMs = 7 * 24 * 60 * 60;
@@ -85,8 +85,7 @@ const PlayerController = {
           }
         );
         const expiryDate = new Date(Date.now() + refreshTokenLifetimeMs * 1000);
-        // je crée le token en db
-        const tokenInDB = await prisma.token.create({
+        await prisma.token.create({
           data: {
             playerId: player.id,
             tokenValue: payloadRefreshToken.rid,
@@ -94,16 +93,16 @@ const PlayerController = {
           },
         });
         
-        res.cookie("refreshToken", refreshToken, {
+        res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
           maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-        res.cookie("accessToken", accessToken, {
+        res.cookie("access_token", accessToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
           maxAge: 15 * 60 * 1000,
         });
         return res.status(200).json({
@@ -138,15 +137,16 @@ const PlayerController = {
     }
   },
   logout: async (req, res) => {
+    
+    const refreshToken = req.cookies.refresh_token
     try {
-      const playerId = req.user.sub
       const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       };
       const decodedRefreshToken = jwt.verify(
-        req.cookies.refreshToken,
+        refreshToken,
         process.env.REFRESH_SECRET
       );
 
@@ -162,8 +162,8 @@ const PlayerController = {
       });
       console.log(revokedToken);
 
-      res.clearCookie("refreshToken", cookieOptions);
-      res.clearCookie("accessToken", cookieOptions);
+      res.clearCookie("refresh_token", cookieOptions);
+      res.clearCookie("access_token", cookieOptions);
 
       return res.status(200).json({
         message: "player disconnected",

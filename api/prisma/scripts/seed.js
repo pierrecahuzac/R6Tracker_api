@@ -2,7 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-const datas = require("./data.json");
+const datas = require("../data.json");
 
 const seedDB = async () => {
 

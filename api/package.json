@@ -12,7 +12,9 @@
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "backup": "tsx scripts/backup.ts",
+    "restore": "npx prisma migrate reset --force && tsx scripts/restore.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",

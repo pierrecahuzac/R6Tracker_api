@@ -35,7 +35,12 @@ const GameController = {
       //console.log(req.body);
 
       const { gameMode, map } = req.body.data || {};
-      const roundNumber = req.body || 0;
+      const roundNumber =
+        req.body && typeof req.body.roundNumber !== "undefined"
+          ? req.body.roundNumber
+          : req.body.data && typeof req.body.data.roundNumber !== "undefined"
+          ? req.body.data.roundNumber
+          : 0;
       // console.log(gameMode, map, roundNumber);
 
       const updateData = {};
@@ -52,10 +57,7 @@ const GameController = {
         });
 
         if (!mapToFind) {
-          // Gérer le cas où la carte n'existe pas
-          return res
-            .status(404)
-            .json({ error: `Carte '${mapName}' non trouvée.` });
+          return res.status(404).json({ error: `Carte '${map}' non trouvée.` });
         }
 
         mapIdToConnect = mapToFind.id;
@@ -72,11 +74,14 @@ const GameController = {
           connect: { name: gameMode },
         };
       }
-      if (roundNumber) {
+      if (
+        roundNumber !== undefined &&
+        roundNumber !== null &&
+        !Number.isNaN(Number(roundNumber))
+      ) {
         updateData.roundNumber = parseInt(roundNumber, 10);
       }
 
- 
       if (Object.keys(updateData).length === 0) {
         return res
           .status(400)
@@ -117,7 +122,57 @@ const GameController = {
         where: {
           playerId,
         },
+        include: {
+          map: {
+            select: {
+              id: true,
+              name: true,
+              nameFr: true,
+              url: true,
+            },
+          },
+          mode: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          player: {
+            select: {
+              username: true,
+              id: true,
+            },
+          },
+          rounds: {
+            orderBy: {
+              roundNumber: "asc",
+            },
+            
+            include: {
+             
+              operator: {
+                select: {
+                  id: true,
+                  name: true,
+                  icon: true,
+                  image: true,
+                },
+              },
+              side: {
+                select: {
+                  id: true,
+                  name: true,
+                  label: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
       });
+
       return res.status(200).json({
         message: "Games founded",
         games,

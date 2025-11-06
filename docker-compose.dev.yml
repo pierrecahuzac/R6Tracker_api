@@ -22,7 +22,7 @@ services:
       - R6Tracker
     depends_on:
       db_r6Tracker:
-        condition: service_healthy
+        condition: service_healthy      
 
 
   

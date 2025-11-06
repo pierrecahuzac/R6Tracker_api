@@ -62,7 +62,7 @@ COPY --from=builder /usr/src/api/routes.js /usr/src/api/routes.js
 # 4. Copie du client Prisma généré
 COPY --from=builder /usr/src/api/node_modules/.prisma /usr/src/api/node_modules/.prisma
 
-EXPOSE 3000
+EXPOSE 5000
 
 # Commande de production finale
 CMD ["pm2-runtime", "server.js"]

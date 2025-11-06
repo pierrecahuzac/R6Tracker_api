@@ -3,7 +3,10 @@ const router = express.Router();
 const RoundController = require("./controller");
 const authMiddleware = require("../middleware/authMiddleware");
 
-router.post("/create", RoundController.create);
+router.post("/create",
+  authMiddleware.decodeJWT,
+   RoundController.create
+  );
 router.put(
   "/update/:roundId",
   authMiddleware.decodeJWT,

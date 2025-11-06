@@ -4,14 +4,28 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 require("dotenv").config();
 
+// Utilitaires JWT locaux pour générer et poser l'access token
+const jwtFunctions = {
+  generateAndSetAccessToken(payload, res) {
+    const expiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN || "15m";
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
+    });
+
+    return token;
+  },
+};
+
 const authMiddleware = {
   async decodeJWT(req, res, next) {
-    console.log(req.cookies);
-    
-    const { accessToken, refreshToken } = req.cookies;
-    console.log(accessToken, refreshToken);
+    const { access_token, refresh_token } = req.cookies;
 
-    let currentAccessToken = accessToken;
+    let currentAccessToken = access_token;
     let needsTokenRefresh = false;
 
     if (currentAccessToken) {
@@ -47,7 +61,7 @@ const authMiddleware = {
 
     if (needsTokenRefresh) {
       console.warn("Attempting to create a new access token");
-      if (!refreshToken) {
+      if (!refresh_token) {
         // Pas de Refresh Token non plus, impossible de s'authentifier
         console.warn(
           "Authentification: Aucun Refresh Token trouvé pour rafraîchir."
@@ -60,7 +74,7 @@ const authMiddleware = {
 
       try {
         const decodedRefreshToken = jwt.verify(
-          refreshToken,
+          refresh_token,
           process.env.REFRESH_SECRET
         );
       
@@ -73,17 +87,27 @@ const authMiddleware = {
               "Accès refusé : Token de rafraîchissement malformé (pas de RID).",
           });
         }
-        const refreshTokenRevoked = await prisma.refreshToken.findUnique({
+        const storedToken = await prisma.token.findUnique({
           where: {
-            token: decodedRefreshToken.rid,
+            tokenValue: decodedRefreshToken.rid,
           },
         });
 
-        if (refreshTokenRevoked !== null) {
+        if (!storedToken) {
+          console.warn(
+            `Refresh Token inconnu (RID: ${decodedRefreshToken.rid}).`
+          );
+          return res.status(401).json({
+            message:
+              "Accès refusé : Token de rafraîchissement inconnu. Veuillez vous reconnecter.",
+          });
+        }
+
+        if (storedToken.isRevoked === true) {
           console.warn(
             `Refresh Token révoqué détecté (RID: ${decodedRefreshToken.rid}).`
           );
-          res.clearCookie("accessToken", {
+          res.clearCookie("access_token", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
