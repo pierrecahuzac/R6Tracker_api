@@ -37,16 +37,17 @@ model GameMode {
 // }
 
 model Player {
-  id        String          @id @default(uuid())
-  createdAt DateTime        @default(now())
-  email     String          @unique
-  username  String
-  password  String
-  accounts  PlayerAccount[]
-  games     Game[]
-  rounds    Round[]
-  language  String          @default("Fr")
-  Token     Token[]
+  id          String          @id @default(uuid())
+  createdAt   DateTime        @default(now())
+  email       String          @unique
+  username    String
+  password    String
+  accounts    PlayerAccount[]
+  games       Game[]
+  rounds      Round[]
+  language    String          @default("Fr")
+  Token       Token[]
+  activeGames ActiveGame[]
 }
 
 model PlayerAccount {
@@ -110,6 +111,7 @@ model Game {
   roundNumber   Int?           @default(0)
   rounds        Round[]
   isFinished    Boolean        @default(false)
+  activeGames   ActiveGame[]
 
   @@index([playerId])
   @@index([mapId])
@@ -154,4 +156,12 @@ model Token {
   tokenValue String   @unique
   expiresAt  DateTime
   createdAt  DateTime @default(now())
+}
+
+model ActiveGame {
+  id       String @id @default(uuid())
+  game     Game   @relation(fields: [gameId], references: [id])
+  gameId   String
+  player   Player @relation(fields: [playerId], references: [id])
+  playerId String
 }
