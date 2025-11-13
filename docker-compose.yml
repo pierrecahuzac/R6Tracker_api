@@ -20,13 +20,14 @@ services:
     image: postgres:15-alpine
     container_name: db_r6Tracker_dev
     restart: always
-    ports:
-      - 5433:5432
+    # ports:
+    #   - 5432:5432
     profiles:
       - development
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}?schema=public
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -68,7 +69,7 @@ services:
 
   db_r6Tracker_production:
     image: postgres:15-alpine
-    container_name: db_r6Tracker_production
+    container_name: db_r6Tracker_prod
     restart: always
     ports:
       - 5432:5432
@@ -76,7 +77,10 @@ services:
       - production
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env.prod
     environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST_PROD}:5432/${POSTGRES_DB}?schema=public
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -124,7 +128,7 @@ services:
     ports:
       - 5555:5555
     env_file:
-      - .env
+     - .env
     networks:
       - R6Tracker
     depends_on:

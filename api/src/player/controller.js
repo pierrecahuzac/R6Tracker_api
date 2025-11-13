@@ -138,8 +138,10 @@ const PlayerController = {
     }
   },
   logout: async (req, res) => {
+    // const playerId = req.user.id;
+    // console.log(playerId);
+    
     try {
-      console.log(req.cookies);
       const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -160,7 +162,7 @@ const PlayerController = {
           isRevoked: true,
         },
       });
-      console.log(revokedToken);
+  
 
       res.clearCookie("refreshToken", cookieOptions);
       res.clearCookie("accessToken", cookieOptions);
