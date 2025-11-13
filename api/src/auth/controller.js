@@ -1,14 +1,31 @@
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
 const AuthController = {
   checkToken: async (req, res) => {
-    console.log(req.user.sub);
-
     const playerId = req.user.sub;
+
+
+    const player = await prisma.player.findUnique({
+      where: {
+        id: playerId,
+      },
+      include: {        
+        activeGame: {
+          select: {
+            id: true
+          }
+        },
+      },
+    });
+    console.log(player);
 
     return res.status(200).json({
       message: "player connected",
       isLoggedIn: true,
-      playerId: req.user.sub,
+      playerId,
       username: req.user.username,
+      player
     });
   },
 };
