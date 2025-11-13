@@ -27,9 +27,7 @@ const PlayerController = {
         email,
         password: hashedPassword,
       },
-    });
-    console.log(player);
-    
+    });    
     return res.status(201).json({message: "player created", player});
   },
 
@@ -94,13 +92,13 @@ const PlayerController = {
           },
         });
         
-        res.cookie("refreshToken", refreshToken, {
+        res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           secure: process.env.NODE_ENV === "production",
           maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-        res.cookie("accessToken", accessToken, {
+        res.cookie("access_token", accessToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
@@ -138,8 +136,7 @@ const PlayerController = {
     }
   },
   logout: async (req, res) => {
-    // const playerId = req.user.id;
-    // console.log(playerId);
+
     
     try {
       const cookieOptions = {

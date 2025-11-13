@@ -17,24 +17,7 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 
 app.disable('x-powered-by');
-// app.use((req, res, next) => {
- 
-//   const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  
 
-//   const originHeader = req.headers.origin || 'N/A'; 
-  
-//   const refererHeader = req.headers.referer || 'N/A'; 
-
-//   console.log(`\n--- REQUÊTE ENTRANTE ---`);
-//   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.originalUrl}`);
-//   console.log(`  IP Client: ${clientIp}`);
-//   console.log(`  Origin Web: ${originHeader}`);
-//   console.log(`  Referer: ${refererHeader}`);
-//   console.log(`------------------------`);
-  
-//   next(); 
-// });
 const originsAllowed = [
   process.env.APP_URL, 
   process.env.APP_URL_, 
@@ -58,7 +41,6 @@ origin: function (origin, callback) {
  callback(null, true);
  } else {
 
- console.log(`🚫 CORS bloqué pour l'origine: ${origin}`);
  callback(new Error('Non autorisé par CORS'), false);
  }
 },

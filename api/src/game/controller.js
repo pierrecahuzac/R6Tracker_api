@@ -32,11 +32,9 @@ const GameController = {
   updateByGameId: async (req, res) => {
     try {
       const gameId = req.params.gameId;
-      //console.log(req.body);
 
       const { gameMode, map } = req.body.data || {};
       const roundNumber = req.body || 0;
-      // console.log(gameMode, map, roundNumber);
 
       const updateData = {};
       let mapIdToConnect = null;
@@ -110,12 +108,114 @@ const GameController = {
       throw error;
     }
   },
+  findGamesByPlayerId: async (req, res) => {
+    const playerId = req.user.sub;
+    try {      
+      const games = await prisma.game.findMany({
+        where: {
+          playerId
+        },
+        select: {
+          createdAt: true,
+          date: true,
+          id: true,
+          isFinished: true,
+          mode: true,
+          opponentScore: true,
+          overtime: true,
+          platformId: true,
+          playerId: true,
+          playerScore: true,
+          status: true,
+          updatedAt: true,
+          map: true,
+          rounds: {
+            select: {
+              id: true,
+              roundNumber: true,
+              roundResult: true,
+              kills: true,
+              death: true,
+              assists: true,
+              disconnected: true,
+              points: true,
+              isFinished: true,
+              side: {
+                select: {
+                  id: true,
+                  name: true,
+                  label: true,
+                },
+              },
+
+              operator: {
+                select: {
+                  id: true,
+                  name: true,
+                  icon: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      console.log(games);
+      
+      return res.status(200).json(games);
+    } catch (error) {
+      throw error;
+    }
+  },
+  
   findByPlayerId: async (req, res) => {
     try {
-      const playerId = req.params.playerId;
+      const playerId = req.user.sub;
       const games = await prisma.game.findMany({
         where: {
           playerId,
+        },
+        select: {
+          createdAt: true,
+          date: true,
+          id: true,
+          isFinished: true,
+          mode: true,
+          opponentScore: true,
+          overtime: true,
+          platformId: true,
+          playerId: true,
+          playerScore: true,
+          status: true,
+          updatedAt: true,
+          map: true,
+          rounds: {
+            select: {
+              id: true,
+              roundNumber: true,
+              roundResult: true,
+              kills: true,
+              death: true,
+              assists: true,
+              disconnected: true,
+              points: true,
+              isFinished: true,
+              side: {
+                select: {
+                  id: true,
+                  name: true,
+                  label: true,
+                },
+              },
+
+              operator: {
+                select: {
+                  id: true,
+                  name: true,
+                  icon: true,
+                },
+              },
+            },
+          },
         },
       });
       return res.status(200).json({
@@ -124,6 +224,44 @@ const GameController = {
       });
     } catch (error) {
       throw error;
+    }
+  },
+  getGameById: async (req, res) => {
+    const playerId = req.user.sub;
+
+    const gameId = req.params.gameId;
+    try {
+      const gameById = await prisma.game.findUnique({
+        where: {
+          id: gameId,
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          date: true,
+          player: true,
+          mapId: true,
+          modeId: true,
+          platformId: true,
+          accountId: true,
+          playerScore: true,
+          opponentScore: true,
+          status: true,
+          overtime: true,
+          roundNumber: true,
+          isFinished: true,
+          rounds: true,
+          map: true,
+          mode: true,
+        },
+      });
+      return res.status(200).json({
+        message: "Game founded",
+        gameById,
+      });
+    } catch (error) {
+      console.log(error);
     }
   },
 };

@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 const RoundController = {
   create: async (req, res) => {
     const sideChoosen = req.body.sideChoosen;
-
     const playerId = req.body.playerId;
     const gameId = req.body.gameId;
+    console.log(req.body);
 
     if (playerId === "undefined") {
       return;
@@ -50,21 +50,15 @@ const RoundController = {
 
   updateByGameId: async (req, res) => {
     const gameId = req.params.gameId;
-    const { modeName, mapName } = req.body.data; // 🚨
+    const { modeName, mapName } = req.body.data;
 
-    // 1. Initialiser l'objet de mise à jour des données
     const updateData = {};
     let mapIdToConnect = null;
 
-    // ===================================================
-    // 2. LOGIQUE POUR LA CARTE (Map)
-    // ===================================================
-    // 🚨 CORRECTION LOGIQUE: La condition pour vérifier si 'mapName' est fourni et non nul
     if (mapName) {
-      // 🚨 CORRECTION SYNTAXE: Le champ unique dans le modèle Map est 'name', pas 'map'
       const mapToFind = await prisma.map.findUnique({
         where: {
-          name: mapName, // Utilise le nom de la carte pour la trouver
+          name: mapName,
         },
         select: {
           id: true,
@@ -72,7 +66,6 @@ const RoundController = {
       });
 
       if (!mapToFind) {
-        // Gérer le cas où la carte n'existe pas
         return res
           .status(404)
           .json({ error: `Carte '${mapName}' non trouvée.` });
@@ -80,40 +73,24 @@ const RoundController = {
 
       mapIdToConnect = mapToFind.id;
     }
-
-    // ===================================================
-    // 3. CONSTRUCTION DE L'OBJET DATA POUR PRISMA
-    // ===================================================
-
-    // Mettre à jour la Carte (si mapIdToConnect est défini)
     if (mapIdToConnect) {
       updateData.map = {
         connect: { id: mapIdToConnect },
       };
     }
-    // Si mapName était nul/vide et que vous voulez dissocier (déconnecter) la map:
-    /* else if (mapName === null) {
-        updateData.map = { disconnect: true };
-    } */
 
-    // Mettre à jour le Mode (si modeName est défini)
     if (modeName) {
-      // Puisque 'name' est unique dans GameMode, cette syntaxe est CORRECTE.
       updateData.mode = {
         connect: { name: modeName },
       };
     }
 
-    // 🚨 GÉRER LES CAS OÙ AUCUNE DONNÉE N'EST FOURNIE :
     if (Object.keys(updateData).length === 0) {
       return res
         .status(400)
         .json({ message: "Aucune donnée de mise à jour valide fournie." });
     }
 
-    // ===================================================
-    // 4. EXÉCUTION DE LA MISE À JOUR
-    // ===================================================
     const gameToFindAndUpdate = await prisma.game.update({
       where: {
         id: gameId,
@@ -123,9 +100,41 @@ const RoundController = {
 
     return res.status(200).json(gameToFindAndUpdate);
   },
+
   updateRoundById: async (req, res) => {
     const { roundId } = req.params;
-    const { round, isFinished } = req.body;
+    const { round, isFinished, operatorId } = req.body;
+    console.log(operatorId);
+
+    // req.body {
+    //   round: {
+    //     id: '682cb2a1-e3d5-494e-89ea-f1db046bf044',
+    //     gameId: '1050c205-f6ab-4645-bae0-f1c33973d88a',
+    //     roundNumber: 1,
+    //     sideId: '94c99cf1-7f2b-4d0a-8ab1-7cc1785bb3e5',
+    //     sideName: '',
+    //     winningSideId: null,
+    //     operatorId: 'f9962a87-2c19-4337-a35d-33965a4fd678',
+    //     kills: 1,
+    //     death: true,
+    //     assists: 2,
+    //     disconnected: false,
+    //     points: 120,
+    //     roundResult: 'Victory',
+    //     createdAt: '2025-11-13T19:39:48.127Z',
+    //     playerId: '02472dcb-e873-4c2c-bb47-3579a3f15f62',
+    //     isFinished: false,
+    //     side: 'ATTACK',
+    //     operator: {
+    //       id: 'f9962a87-2c19-4337-a35d-33965a4fd678',
+    //       name: 'Thermite',
+    //       sideId: '94c99cf1-7f2b-4d0a-8ab1-7cc1785bb3e5',
+    //       image: 'https://staticctf.ubisoft.com/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/3NQW8lJVslVSaYSiBlAleU/09fd8e3e946f2e71f39182b9ff18dd77/r6-operators-list-thermite.png',
+    //       icon: 'https://static.wikia.nocookie.net/rainbowsix/images/4/40/ThermiteIconN.png'
+    //     }
+    //   },
+    //   isFinished: true
+    // }
 
     try {
       const updatedRound = await prisma.round.update({
@@ -133,15 +142,50 @@ const RoundController = {
         data: {
           kills: round.kills,
           assists: round.assists,
-          roundNumber: round.roundNumber,
+          roundNumber: Number(round.roundNumber),
           death: round.death,
           disconnected: round.disconnected,
           points: round.points,
           roundResult: round.roundResult,
           isFinished: req.body.isFinished ? true : false,
-          operatorId: round.operatorId,
+          operatorId: round.operatorId && round.operatorId,
         },
       });
+      console.log(round.roundResult);
+
+      if (round.roundResult !== null) {
+        if (
+          (
+            round.roundResult.toUpperCase() === "VICTORY") ||
+          round.roundResult.toUpperCase() === "DEFEAT"
+        ) {
+          const currentGame = await prisma.game.findUnique({
+            where: { id: round.gameId },
+            select: { playerScore: true, opponentScore: true },
+          });
+          console.log(currentGame);
+
+          const currentPScore = currentGame.playerScore || 0;
+          const currentOScore = currentGame.opponentScore || 0;
+          const updateScoreInGame = await prisma.game.update({
+            where: {
+              id: round.gameId,
+            },
+            data: {
+              playerScore:
+                round.roundResult.toUpperCase() === "VICTORY"
+                  ? currentPScore + 1
+                  : currentPScore,
+
+              opponentScore:
+                round.roundResult.toUpperCase() === "DEFEAT"
+                  ? currentOScore + 1
+                  : currentOScore,
+            },
+          });
+          console.log(updateScoreInGame);
+        }
+      }
 
       const { playerScore, opponentScore } = await calculateCurrentScore(
         updatedRound.gameId
@@ -165,7 +209,7 @@ const RoundController = {
         gameStatus = "OVERTIME";
       } else if (req.body.forceDraw === true) {
         gameStatus = "MATCH_DRAW";
-      } 
+      }
 
       if (gameStatus !== "IN_PROGRESS") {
         const updateData = {
@@ -177,16 +221,19 @@ const RoundController = {
         if (gameStatus === "OVERTIME") {
           updateData.overtime = true;
         }
+        console.log(updateData);
 
-        await prisma.game.update({
+        const gameUpdated = await prisma.game.update({
           where: { id: updatedRound.gameId },
           data: updateData,
         });
+        console.log(gameUpdated);
       }
 
       return res.status(200).json({
         updatedRound,
         gameStatus: gameStatus,
+
         finalScore: `${pScore}-${oScore}`,
       });
     } catch (error) {

@@ -10,8 +10,8 @@ const AuthRouter= require("./src/auth/router");
 const ActiveGameRouter= require("./src/activeGame/router");
 
 
-  router.get("/api/test", (req, res) => { // <-- AJOUTEZ CETTE LIGNE
-    console.log("Teste DIRECT de l'API");
+  router.get("/api/test", (req, res) => { 
+ 
     return res.json({ status: "OK", message: "TEST OK" });
 })
 

@@ -6,7 +6,7 @@ COPY package*.json ./
 
 COPY prisma ./prisma/
 
-RUN npm i ci
+RUN npm ci
 
 RUN npm i -g nodemon
 
