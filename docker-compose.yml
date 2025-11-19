@@ -4,15 +4,16 @@ services:
     profiles:
       - development
     build:
-      context: ./api
-      dockerfile: Dockerfile.dev
+      context: ./
+      dockerfile: ./Dockerfile.dev
     ports:
       - 5000:5000
     volumes:
-      - ./api:/usr/src/api
+      - ./:/usr/src/api
       - /usr/src/api/node_modules
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}?schema=public
+    env_file:
+      - .env
+   
     restart: unless-stopped
     networks:
       - R6Tracker
@@ -20,18 +21,13 @@ services:
     image: postgres:15-alpine
     container_name: db_r6Tracker_dev
     restart: always
-    # ports:
-    #   - 5432:5432
+    env_file:
+      - .env
     profiles:
       - development
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}?schema=public
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - DB_HOST=${DB_HOST}
+   
     networks:
       - R6Tracker
     healthcheck: # Ajoutez ceci pour que Docker sache quand la DB est prête
@@ -44,10 +40,10 @@ services:
     profiles:
       - production
     build:
-      context: ./api
-      dockerfile: Dockerfile.prod
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${POSTGRES_DB}?schema=public
+      context: .
+      dockerfile: ./Dockerfile.prod
+    env_file:
+      - .env.prod
     labels:
       "traefik.enable": "true"
       "traefik.docker.network": "traefik-network"
@@ -79,12 +75,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env.prod
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DB_HOST_PROD}:5432/${POSTGRES_DB}?schema=public
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - DB_HOST=${DB_HOST}
     networks:
       - R6Tracker
     healthcheck: # Ajoutez ceci pour que Docker sache quand la DB est prête
@@ -114,6 +104,9 @@ services:
       - development
     ports:
       - 9090:8080
+    env_file:
+      - .env
+   
     networks:
       - R6Tracker
     depends_on:
@@ -131,6 +124,7 @@ services:
      - .env
     networks:
       - R6Tracker
+    
     depends_on:
       db_r6Tracker_dev:
         condition: service_healthy

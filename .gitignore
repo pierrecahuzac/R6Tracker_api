@@ -1,5 +1,6 @@
 .env
-/api/.env
-/api/node_modules
+.env.prod
+
+node_modules
 adminer.md
 commands.md

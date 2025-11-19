@@ -7,7 +7,7 @@ const cookieParser = require("cookie-parser");
 
 const port = 5000;
 
-const Cors= require('cors')
+const Cors = require('cors')
 const app = express();
 
 
@@ -19,38 +19,38 @@ app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.disable('x-powered-by');
 
 const originsAllowed = [
-  process.env.APP_URL, 
-  process.env.APP_URL_, 
+  process.env.APP_URL,
+  process.env.APP_URL_,
   process.env.DEVELOPPEMENT_APP_URL_,
   process.env.DEVELOPPEMENT_APP_URL,
   process.env.LOCALHOST_APP_URL,
   process.env.LOCALHOST_APP_URL_,
-  ].filter(Boolean);
- 
-  
-  
+].filter(Boolean);
+
+
+
+
 var corsOptions = {
- 
-origin: function (origin, callback) {
+  origin: function (origin, callback) {
+    console.log(origin);    
+    if (!origin) return callback(null, true);
 
- if (!origin) return callback(null, true); 
 
- 
- if (originsAllowed.includes(origin)) {
+    if (originsAllowed.includes(origin)) {
 
- callback(null, true);
- } else {
+      callback(null, true);
+    } else {
 
- callback(new Error('Non autorisé par CORS'), false);
- }
-},
-optionsSuccessStatus: 200,
-  credentials: true 
+      callback(new Error('Non autorisé par CORS'), false);
+    }
+  },
+  optionsSuccessStatus: 200,
+  credentials: true
 }
-
 app.use(Cors(corsOptions));
-app.use(routes); 
+app.use(routes);
 app.listen(port, '0.0.0.0', () => {
   console.log(`Example app listening on ${port}`);
+  ;
 });
 

@@ -1,13 +1,37 @@
 const { PrismaClient } = require("@prisma/client");
 
+
 const prisma = new PrismaClient();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
+const passwordValidator = require('password-validator');
+const passwordsList = require('../../passwordList.json')
+
+var passwordSchema = new passwordValidator();
+
+console.log(passwordsList);
+
+passwordSchema
+.is().min(8)                                    // Minimum length 8
+.is().max(100)                                  // Maximum length 100
+.has().uppercase()                              // Must have uppercase letters
+.has().lowercase()                              // Must have lowercase letters
+.has().digits(2)                                // Must have at least 2 digits
+.has().not().spaces()                           // Should not have spaces
+.is().not().oneOf([passwordsList]); 
 
 const PlayerController = {
+
   signup: async (req, res) => {
     const { password, email, username } = req.body;
+
+   console.log(passwordSchema.validate(password)) 
+    if(!passwordSchema.validate(password)){
+      return res.status(401).json({
+        message: "Password not valid"
+      })
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const playerExists = await prisma.player.findUnique({
       where: {
@@ -27,8 +51,8 @@ const PlayerController = {
         email,
         password: hashedPassword,
       },
-    });    
-    return res.status(201).json({message: "player created", player});
+    });
+    return res.status(201).json({ message: "player created", player });
   },
 
   login: async (req, res) => {
@@ -91,7 +115,7 @@ const PlayerController = {
             expiresAt: expiryDate,
           },
         });
-        
+
         res.cookie("refresh_token", refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
@@ -137,7 +161,7 @@ const PlayerController = {
   },
   logout: async (req, res) => {
 
-    
+
     try {
       const cookieOptions = {
         httpOnly: true,
@@ -159,7 +183,7 @@ const PlayerController = {
           isRevoked: true,
         },
       });
-  
+
 
       res.clearCookie("refreshToken", cookieOptions);
       res.clearCookie("accessToken", cookieOptions);

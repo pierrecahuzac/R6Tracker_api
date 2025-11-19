@@ -6,7 +6,7 @@ COPY package*.json ./
 
 COPY prisma ./prisma/
 
-RUN npm ci
+RUN npm i
 
 RUN npm i -g nodemon
 
@@ -16,4 +16,4 @@ RUN npx prisma generate
 
 EXPOSE 3000
 
-CMD ["nodemon", "server.js"]
+CMD ["nodemon","-L", "server.js"]
