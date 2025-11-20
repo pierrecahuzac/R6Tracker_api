@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+import prisma from '../../prisma/prismaClient.js' 
 
 const OperatorController = {
   getAll: async (req, res) => {
@@ -37,4 +35,4 @@ const OperatorController = {
   },
 };
 
-module.exports = OperatorController;
+export default  OperatorController;

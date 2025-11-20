@@ -1,7 +1,8 @@
-const express = require("express");
+import express from "express";
+import GameController from "./controller.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 const router = express.Router();
-const GameController = require("./controller");
-const authMiddleware = require("../middleware/authMiddleware");
+
 router.post("/create", authMiddleware.decodeJWT, GameController.create);
 
 router.put(
@@ -26,4 +27,4 @@ router.get("/findAll", authMiddleware.decodeJWT,GameController.findAll);
 router.get("/:gameId", authMiddleware.decodeJWT, GameController.getGameById);
 
 
-module.exports = router;
+export default router;

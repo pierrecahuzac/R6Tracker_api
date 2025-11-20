@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+import prisma from '../../prisma/prismaClient.js' 
 
 const GameController = {
   create: async (req, res) => {
@@ -266,4 +264,4 @@ const GameController = {
   },
 };
 
-module.exports = GameController;
+export default  GameController;

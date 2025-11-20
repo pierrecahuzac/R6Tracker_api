@@ -1,7 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const GameController = require("./controller");
+import express from "express";
+import GameController from "./controller.js";
 
+const router = express.Router();
 
 router.get(
   "/getAll",
@@ -9,4 +9,4 @@ router.get(
 );
 
 
-module.exports = router;
+export default router;

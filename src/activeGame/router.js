@@ -1,8 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const ActiveGameController = require("./controller");
-const authMiddleware = require('../middleware/authMiddleware')
+import express from "express";
+import ActiveGameController from "./controller.js"
+import authMiddleware from '../middleware/authMiddleware.js'
 
+const  router =  express.Router();
 
 router.get(
   "/", authMiddleware.decodeJWT,
@@ -17,5 +17,5 @@ router.post(
   ActiveGameController.create
 );
 
+export default router
 
-module.exports = router;

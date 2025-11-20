@@ -1,6 +1,6 @@
-const express = require("express");
+import  express from "express";
 const router = express.Router();
-const RoundController = require("./controller");
+import  RoundController from "./controller.js";
 
 
 router.post(
@@ -17,4 +17,4 @@ router.get("/:gameId", RoundController.findRoundsStatsByGameId)
 
 
 
-module.exports = router;
+export default  router;

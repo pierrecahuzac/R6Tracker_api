@@ -1,6 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
+import prisma from '../../prisma/prismaClient.js'
 
-const prisma = new PrismaClient();
 const AuthController = {
   checkToken: async (req, res) => {
     const playerId = req.user.sub;
@@ -30,5 +29,5 @@ const AuthController = {
   },
 };
 
-module.exports = AuthController;
+export default AuthController;
 

@@ -1,13 +1,12 @@
-const dotenv = require("dotenv");
-dotenv.config();
-const routes = require("./routes");
-const express = require("express");
-
-const cookieParser = require("cookie-parser");
+import dotenv from "dotenv"
+import routes from './routes.js'
+import express from "express"
+import cookieParser from "cookie-parser"
+import Cors from 'cors'
 
 const port = 5000;
+dotenv.config();
 
-const Cors = require('cors')
 const app = express();
 
 

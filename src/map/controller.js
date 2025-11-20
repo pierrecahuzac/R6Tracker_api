@@ -1,6 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
 
-const prisma = new PrismaClient();
+import prisma from '../../prisma/prismaClient.js' 
 
 const MapController = {
   getAll: async (req, res) => {
@@ -11,4 +10,4 @@ const MapController = {
   },
 };
 
-module.exports = MapController;
+export default  MapController;

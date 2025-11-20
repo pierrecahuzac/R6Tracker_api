@@ -1,6 +1,7 @@
-const express = require("express");
+import express from "express";
+import PlayerController from "./controller.js";
+
 const router = express.Router();
-const PlayerController = require("./controller");
 
 const { NODE_ENV } = process.env;
 
@@ -13,4 +14,4 @@ if (NODE_ENV === "development") {
 }
 router.post("/logout", PlayerController.logout);
 
-module.exports = router;
+export default router;

@@ -1,7 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
-
+import prisma from '../../prisma/prismaClient.js' 
+import calculateCurrentScore from '../functions.js'
 const RoundController = {
   create: async (req, res) => {
     const sideChoosen = req.body.sideChoosen;
@@ -259,35 +257,4 @@ const RoundController = {
   },
 };
 
-module.exports = RoundController;
-
-const calculateCurrentScore = async (gameId) => {
-  // 1. Récupérer tous les rounds terminés pour ce jeu
-  const finishedRounds = await prisma.round.findMany({
-    where: {
-      gameId: gameId,
-      isFinished: true,
-    },
-    select: {
-      roundResult: true,
-    },
-  });
-
-  let playerScore = 0;
-  let opponentScore = 0;
-
-  // 2. Calculer le score
-  finishedRounds.forEach((round) => {
-    if (round.roundResult === "Victory") {
-      playerScore += 1;
-    } else if (round.roundResult === "Defeat") {
-      opponentScore += 1;
-    } else if (round.roundResult === "Draw") {
-      // Un point pour chaque camp en cas d'égalité (selon votre règle)
-      playerScore += 1;
-      opponentScore += 1;
-    }
-  });
-
-  return { playerScore, opponentScore };
-};
+export default RoundController;

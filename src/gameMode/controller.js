@@ -1,6 +1,5 @@
-const { PrismaClient } = require("@prisma/client");
 
-const prisma = new PrismaClient();
+import prisma from '../../prisma/prismaClient.js' 
 
 const GameModeController = {
   getAll: async (req, res) => {
@@ -14,4 +13,4 @@ const GameModeController = {
   },
 };
 
-module.exports = GameModeController;
+export default GameModeController;
