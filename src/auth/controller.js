@@ -1,34 +1,20 @@
-const { PrismaClient } = require("@prisma/client");
+import AuthService from './service.js';
 
-const prisma = new PrismaClient();
 const AuthController = {
   checkToken: async (req, res) => {
-    const playerId = req.user.sub;
-
-    const player = await prisma.player.findUnique({
-      where: {
-        id: playerId,
-      },
-      include: {
-        activeGame: {
-          select: {
-            id: true,
-            gameId:true
-          },
-        },
-      },
-    });
-   
-    delete player.password;
-    return res.status(200).json({
-      message: "player connected",
-      isLoggedIn: true,
-      playerId,
-      username: req.user.username,
-      player,
-    });
+    try {
+      const playerId = req.user.sub;
+      const result = await AuthService.checkToken(playerId);
+      return res.status(200).json({
+        message: "player connected",
+        ...result,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(401).json({ message: error.message });
+    }
   },
 };
 
-module.exports = AuthController;
+export default AuthController;
 

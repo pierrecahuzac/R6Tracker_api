@@ -1,6 +1,7 @@
-const express = require("express");
-const router = express.Router();
-const RoundController = require("./controller");
+import {createRouter} from '../../createRouter.js'
+const router = createRouter()
+
+import  RoundController from "./controller.js";
 
 
 router.post(
@@ -17,4 +18,4 @@ router.get("/:gameId", RoundController.findRoundsStatsByGameId)
 
 
 
-module.exports = router;
+export default  router;

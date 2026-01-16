@@ -1,200 +1,106 @@
-const { PrismaClient } = require("@prisma/client");
-
-
+import PlayerService from './service.js';
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { v4: uuidv4 } = require("uuid");
-const passwordValidator = require('password-validator');
-const passwordsList = require('../../passwordList.json')
-
-var passwordSchema = new passwordValidator();
-
-console.log(passwordsList);
-
-passwordSchema
-.is().min(8)                                    // Minimum length 8
-.is().max(100)                                  // Maximum length 100
-.has().uppercase()                              // Must have uppercase letters
-.has().lowercase()                              // Must have lowercase letters
-.has().digits(2)                                // Must have at least 2 digits
-.has().not().spaces()                           // Should not have spaces
-.is().not().oneOf([passwordsList]); 
 
 const PlayerController = {
-
   signup: async (req, res) => {
     const { password, email, username } = req.body;
-
-   console.log(passwordSchema.validate(password)) 
-    if(!passwordSchema.validate(password)){
-      return res.status(401).json({
-        message: "Password not valid"
-      })
+    try {
+      const player = await PlayerService.signup(password, email, username);
+      return res.status(201).json({ message: "player created", player });
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({ message: error.message });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const playerExists = await prisma.player.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    if (playerExists) {
-      return res.status(400).json({
-        message: "Utilisateur déjà existant",
-      });
-    }
-
-    const player = await prisma.player.create({
-      data: {
-        username,
-        email,
-        password: hashedPassword,
-      },
-    });
-    return res.status(201).json({ message: "player created", player });
   },
 
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
-      if (!email || !password) {
-        return res.status(401).json({
-          message: "Email ou mot de passe absent",
-        });
-      }
-      const player = await prisma.player.findUnique({
-        where: {
-          email,
-        },
+      const result = await PlayerService.login(email, password);
+      
+      const isProduction = process.env.NODE_ENV === "production";
+      const cookieOptions = {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "Lax",
+        path: "/",
+      };
+
+      console.log("🔐 Création des cookies:");
+      console.log("- Access token créé:", !!result.accessToken, "Durée:", "15m");
+      console.log("- Refresh token créé:", !!result.refreshToken, "Durée:", "7 jours");
+      console.log("- Environnement:", isProduction ? "PRODUCTION" : "DEVELOPPEMENT");
+      console.log("- Cookie options:", JSON.stringify(cookieOptions, null, 2));
+
+      res.cookie("access_token", result.accessToken, {
+        ...cookieOptions,
+        maxAge: 15 * 60 * 1000,
       });
 
-      if (player) {
-        const isPasswordValid = await bcrypt.compare(password, player.password);
-        if (!isPasswordValid) {
-          return res.status(401).json({
-            message: "Combinaison email/mot de passe incorrecte",
-          });
-        }
-        delete player.password;
+      res.cookie("refresh_token", result.refreshToken, {
+        ...cookieOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
 
-        const payloadAccessToken = {
-          sub: player.id,
-          username: player.username,
-          email: player.email,
-        };
+      console.log("✅ Cookies définis dans la réponse");
+      console.log("📋 En-têtes Set-Cookie:", res.getHeaders()["set-cookie"]);
 
-        const payloadRefreshToken = {
-          sub: player.id,
-          username: player.username,
-          email: player.email,
-          rid: uuidv4(),
-        };
+      const setCookieHeaders = res.getHeaders()["set-cookie"] || [];
+      const hasRefreshToken = setCookieHeaders.some((header) => header.includes("refresh_token"));
+      const hasAccessToken = setCookieHeaders.some((header) => header.includes("access_token"));
+      console.log("🔍 Vérification cookies:");
+      console.log("- refresh_token présent:", hasRefreshToken);
+      console.log("- access_token présent:", hasAccessToken);
 
-        const accessToken = jwt.sign(
-          payloadAccessToken,
-          process.env.JWT_SECRET,
-          {
-            expiresIn: 15 * 60 * 1000,
-          }
-        );
-        const refreshTokenLifetimeMs = 7 * 24 * 60 * 60;
-        const refreshToken = jwt.sign(
-          payloadRefreshToken,
-          process.env.REFRESH_SECRET,
-          {
-            expiresIn: refreshTokenLifetimeMs,
-          }
-        );
-        const expiryDate = new Date(Date.now() + refreshTokenLifetimeMs * 1000);
-        // je crée le token en db
-        const tokenInDB = await prisma.token.create({
-          data: {
-            playerId: player.id,
-            tokenValue: payloadRefreshToken.rid,
-            expiresAt: expiryDate,
-          },
-        });
-
-        res.cookie("refresh_token", refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-        res.cookie("access_token", accessToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
-          maxAge: 15 * 60 * 1000,
-        });
-        return res.status(200).json({
-          success: "player logged",
-          playerId: player.id,
-          username: player.username,
-          email: player.email,
-        });
-      }
+      return res.status(200).json({
+        success: true,
+        message: "player logged",
+        playerId: result.player.id,
+        username: result.player.username,
+        email: result.player.email,
+      });
     } catch (error) {
-      throw error;
+      console.log(error);
+      return res.status(401).json({ message: error.message });
     }
   },
 
   findById: async (req, res) => {
     const playerId = req.params.playerId;
     try {
-      const player = await prisma.player.findUnique({
-        where: {
-          id: playerId,
-        },
-      });
-      if (!player) {
-        return res.status(404).json({ message: "Joueur non trouvé" });
-      }
-
+      const player = await PlayerService.findById(playerId);
       delete player.password;
-
       return res.status(200).json(player);
     } catch (error) {
-      throw error;
+      console.log(error);
+      return res.status(404).json({ message: error.message });
     }
   },
+
   logout: async (req, res) => {
-
-
+    console.log(req.cookies);
     try {
       const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "Lax",
       };
-      const decodedRefreshToken = jwt.verify(
-        req.cookies.refreshToken,
-        process.env.REFRESH_SECRET
-      );
 
-      const rid = decodedRefreshToken.rid;
+      const result = await PlayerService.logout(req.cookies.refresh_token);
+      console.log(result);
 
-      const revokedToken = await prisma.token.update({
-        where: {
-          tokenValue: rid,
-        },
-        data: {
-          isRevoked: true,
-        },
-      });
-
-
-      res.clearCookie("refreshToken", cookieOptions);
-      res.clearCookie("accessToken", cookieOptions);
+      res.clearCookie("refresh_token", cookieOptions);
+      res.clearCookie("access_token", cookieOptions);
 
       return res.status(200).json({
         message: "player disconnected",
       });
     } catch (error) {
+      console.log(error);
       throw error;
     }
   },
 };
 
-module.exports = PlayerController;
+export default PlayerController;

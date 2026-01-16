@@ -1,6 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const MapController = require("./controller");
+import {createRouter} from '../../createRouter.js'
+const router = createRouter()
+import  MapController from "./controller.js";
+
+
 
 router.get(
   "/getAll",
@@ -8,4 +10,4 @@ router.get(
 );
 
 
-module.exports = router;
+export default  router;

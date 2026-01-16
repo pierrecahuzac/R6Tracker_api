@@ -1,40 +1,27 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+import OperatorService from './service.js';
 
 const OperatorController = {
   getAll: async (req, res) => {
-  
-    ; const operators = await prisma.operator.findMany();
-
-    return res.status(200).json(operators);
+    try {
+      const operators = await OperatorService.getAll();
+      return res.status(200).json(operators);
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: error.message });
+    }
   },
+
   getAllOperatorsBySide: async (req, res) => {
-   
     const sideChoosen = req.params.side;
     
     try {
-      const side = await prisma.side.findUnique({
-        where: {
-          name: sideChoosen,
-        },
-      });
-      if(!side) {
-        return res.status(404).json({ message: "Side non trouvée" });
-      }
-      
-            const operators = await prisma.operator.findMany({
-        where: {
-         sideId: side.id
-        },
-      });
-     return res.status(200).json(operators);
+      const operators = await OperatorService.getAllOperatorsBySide(sideChoosen);
+      return res.status(200).json(operators);
     } catch (error) {
       console.log(error);
-
-      throw error;
+      return res.status(404).json({ message: error.message });
     }
   },
 };
 
-module.exports = OperatorController;
+export default OperatorController;

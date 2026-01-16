@@ -1,8 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const OperatorController = require("./controller");
+import {createRouter} from '../../createRouter.js'
+const router = createRouter()
+import  OperatorController from "./controller.js";
 
-
+ 
 router.get(
   "/getAll",
   OperatorController.getAll
@@ -13,4 +13,4 @@ router.get(
 );
 
 
-module.exports = router;
+export default  router;
