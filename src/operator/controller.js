@@ -1,13 +1,14 @@
 import OperatorService from './service.js';
+import { respondSuccess, respondError } from '../utils/responseHandler.js';
 
 const OperatorController = {
   getAll: async (req, res) => {
     try {
       const operators = await OperatorService.getAll();
-      return res.status(200).json(operators);
+      return respondSuccess(res, operators, "Operators retrieved successfully");
     } catch (error) {
       console.log(error);
-      return res.status(500).json({ message: error.message });
+      return respondError(res, error.message, 500);
     }
   },
 
@@ -16,10 +17,10 @@ const OperatorController = {
     
     try {
       const operators = await OperatorService.getAllOperatorsBySide(sideChoosen);
-      return res.status(200).json(operators);
+      return respondSuccess(res, operators, "Operators retrieved successfully");
     } catch (error) {
       console.log(error);
-      return res.status(404).json({ message: error.message });
+      return respondError(res, error.message, 404);
     }
   },
 };

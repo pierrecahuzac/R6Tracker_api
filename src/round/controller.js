@@ -1,4 +1,5 @@
 import RoundService from './service.js';
+import { respondSuccess, respondError } from '../utils/responseHandler.js';
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
@@ -14,9 +15,10 @@ const RoundController = {
 
     try {
       const round = await RoundService.createRound(sideChoosen, playerId, gameId);
-      return res.status(201).json(round);
+      return respondSuccess(res, round, "Round created", 201);
     } catch (error) {
       console.log(error);
+      return respondError(res, error.message, 400);
     }
   },
 
@@ -32,10 +34,10 @@ const RoundController = {
         round.gameId,
         req.body.forceDraw
       );
-      return res.status(200).json(result);
+      return respondSuccess(res, result, "Round updated successfully");
     } catch (error) {
       console.error("Erreur lors de la mise à jour du round:", error);
-      throw error;
+      return respondError(res, error.message, 400);
     }
   },
 
@@ -43,10 +45,11 @@ const RoundController = {
     try {
       const gameId = req.params.gameId;
       const result = await RoundService.findRoundsByGameId(gameId);
-      return res.status(200).json({
-        result,
-      });
-    } catch (error) {}
+      return respondSuccess(res, result, "Rounds retrieved successfully");
+    } catch (error) {
+      console.log(error);
+      return respondError(res, error.message, 500);
+    }
   },
 };
 
