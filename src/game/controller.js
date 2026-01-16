@@ -1,4 +1,5 @@
 import GameService from "./service.js";
+import { respondSuccess, respondError } from "../utils/responseHandler.js";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
@@ -10,10 +11,10 @@ const GameController = {
     try {
       const playerId = req.body.playerId;
       const result = await GameService.createGame(playerId);
-      return res.status(201).json(result);
+      return respondSuccess(res, result, "Game created successfully", 201);
     } catch (error) {
       console.error("Error creating game:", error.message);
-      return res.status(400).json({ message: error.message });
+      return respondError(res, error.message, 400);
     }
   },
 
@@ -26,12 +27,11 @@ const GameController = {
       const updateData = req.body.data || req.body;
 
       const updatedGame = await GameService.updateGameById(gameId, updateData);
-      return res.status(200).json(updatedGame);
+      return respondSuccess(res, updatedGame, "Game updated successfully");
     } catch (error) {
       console.error("Error updating game:", error.message);
-      return res
-        .status(error.message.includes("not found") ? 404 : 400)
-        .json({ message: error.message });
+      const statusCode = error.message.includes("not found") ? 404 : 400;
+      return respondError(res, error.message, statusCode);
     }
   },
 
@@ -41,10 +41,10 @@ const GameController = {
   findAll: async (req, res) => {
     try {
       const games = await GameService.getAllGames();
-      return res.status(200).json(games);
+      return respondSuccess(res, games, "Games retrieved successfully");
     } catch (error) {
       console.error("Error fetching games:", error.message);
-      return res.status(500).json({ message: error.message });
+      return respondError(res, error.message, 500);
     }
   },
 
@@ -55,10 +55,10 @@ const GameController = {
     try {
       const playerId = req.user.sub;
       const games = await GameService.getGamesByPlayerId(playerId);
-      return res.status(200).json(games);
+      return respondSuccess(res, games, "Player games retrieved successfully");
     } catch (error) {
       console.error("Error fetching player games:", error.message);
-      return res.status(500).json({ message: error.message });
+      return respondError(res, error.message, 500);
     }
   },
 
@@ -69,13 +69,10 @@ const GameController = {
     try {
       const playerId = req.user.sub;
       const games = await GameService.getGamesByPlayerId(playerId);
-      return res.status(200).json({
-        message: "Games found",
-        games,
-      });
+      return respondSuccess(res, games, "Games found");
     } catch (error) {
       console.error("Error fetching player games:", error.message);
-      return res.status(500).json({ message: error.message });
+      return respondError(res, error.message, 500);
     }
   },
 
@@ -86,15 +83,11 @@ const GameController = {
     try {
       const gameId = req.params.gameId;
       const game = await GameService.getGameById(gameId);
-      return res.status(200).json({
-        message: "Game found",
-        gameById: game,
-      });
+      return respondSuccess(res, game, "Game found");
     } catch (error) {
       console.error("Error fetching game:", error.message);
-      return res
-        .status(error.message.includes("not found") ? 404 : 500)
-        .json({ message: error.message });
+      const statusCode = error.message.includes("not found") ? 404 : 500;
+      return respondError(res, error.message, statusCode);
     }
   },
 };

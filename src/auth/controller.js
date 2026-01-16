@@ -1,17 +1,15 @@
 import AuthService from './service.js';
+import { respondSuccess, respondError } from '../utils/responseHandler.js';
 
 const AuthController = {
   checkToken: async (req, res) => {
     try {
       const playerId = req.user.sub;
       const result = await AuthService.checkToken(playerId);
-      return res.status(200).json({
-        message: "player connected",
-        ...result,
-      });
+      return respondSuccess(res, result, "Player connected");
     } catch (error) {
       console.log(error);
-      return res.status(401).json({ message: error.message });
+      return respondError(res, error.message, 401);
     }
   },
 };

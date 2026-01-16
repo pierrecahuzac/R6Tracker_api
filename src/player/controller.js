@@ -1,4 +1,5 @@
 import PlayerService from './service.js';
+import { respondSuccess, respondError } from '../utils/responseHandler.js';
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
@@ -7,10 +8,10 @@ const PlayerController = {
     const { password, email, username } = req.body;
     try {
       const player = await PlayerService.signup(password, email, username);
-      return res.status(201).json({ message: "player created", player });
+      return respondSuccess(res, player, "Player created", 201);
     } catch (error) {
       console.log(error);
-      return res.status(400).json({ message: error.message });
+      return respondError(res, error.message, 400);
     }
   },
 
@@ -53,16 +54,14 @@ const PlayerController = {
       console.log("- refresh_token présent:", hasRefreshToken);
       console.log("- access_token présent:", hasAccessToken);
 
-      return res.status(200).json({
-        success: true,
-        message: "player logged",
+      return respondSuccess(res, {
         playerId: result.player.id,
         username: result.player.username,
         email: result.player.email,
-      });
+      }, "Player logged");
     } catch (error) {
       console.log(error);
-      return res.status(401).json({ message: error.message });
+      return respondError(res, error.message, 401);
     }
   },
 
@@ -71,10 +70,10 @@ const PlayerController = {
     try {
       const player = await PlayerService.findById(playerId);
       delete player.password;
-      return res.status(200).json(player);
+      return respondSuccess(res, player, "Player found");
     } catch (error) {
       console.log(error);
-      return res.status(404).json({ message: error.message });
+      return respondError(res, error.message, 404);
     }
   },
 
@@ -93,9 +92,7 @@ const PlayerController = {
       res.clearCookie("refresh_token", cookieOptions);
       res.clearCookie("access_token", cookieOptions);
 
-      return res.status(200).json({
-        message: "player disconnected",
-      });
+      return respondSuccess(res, {}, "Player disconnected");
     } catch (error) {
       console.log(error);
       throw error;
