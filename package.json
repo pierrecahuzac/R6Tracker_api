@@ -8,7 +8,14 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "docs": "NODE_ENV=development PORT=5001 node server.js",
+    "api:dev:up": "docker compose --profile development up --build",
+    "api:dev:down": "docker compose --profile development down",
+    "api:prod:up": "docker compose --env-file .env.prod --profile production up --build",
+    "api:prod:down": "docker compose --env-file .env.prod --profile production down",
+    "prisma:prod:migrate": "docker exec -it api_r6tracker npx prisma migrate deploy"
+
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
@@ -16,8 +23,10 @@
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "js-yaml": "^4.1.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
+    "swagger-ui-express": "^4.6.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

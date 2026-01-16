@@ -1,5 +1,6 @@
-import  express from "express";
-const router = express.Router();
+import {createRouter} from '../../createRouter.js'
+const router = createRouter()
+
 import  RoundController from "./controller.js";
 
 

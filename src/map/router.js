@@ -1,7 +1,8 @@
-import  express from "express";
+import {createRouter} from '../../createRouter.js'
+const router = createRouter()
 import  MapController from "./controller.js";
 
-const router = express.Router();
+
 
 router.get(
   "/getAll",

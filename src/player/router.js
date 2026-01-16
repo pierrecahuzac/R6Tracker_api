@@ -1,8 +1,9 @@
-import express from "express";
+// import express from "express";
+// const router = express.Router();
 import PlayerController from "./controller.js";
 
-const router = express.Router();
-
+import {createRouter} from '../../createRouter.js'
+const router = createRouter()
 const { NODE_ENV } = process.env;
 
 router.post("/signup", PlayerController.signup);

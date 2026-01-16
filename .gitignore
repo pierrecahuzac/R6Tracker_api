@@ -1,6 +1,8 @@
 .env
 .env.prod
 
-node_modules
+node_modules/
 adminer.md
 commands.md
+
+/db

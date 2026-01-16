@@ -1,4 +1,6 @@
-const  generateAndSetAccessToken = (payload, res) => {
+import jwt from "jsonwebtoken";
+
+const generateAndSetAccessToken = (payload, res) => {
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_LIFETIME || "15m",
   });
@@ -9,7 +11,8 @@ const  generateAndSetAccessToken = (payload, res) => {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: (process.env.ACCESS_TOKEN_LIFETIME || 900) * 1000,
   });
+  console.log(accessToken);
 
   return accessToken;
 };
-export default generateAndSetAccessToken
+export default generateAndSetAccessToken;

@@ -1,11 +1,11 @@
-generator client {
-  provider = "prisma-client-js"
-  // binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  // binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 model Platform {
@@ -29,13 +29,6 @@ model GameMode {
   games Game[]
 }
 
-// model Result {
-//   id    String @id @default(uuid())
-//   name  String @unique
-//   label String
-//   games Game[]
-// }
-
 model Player {
   id        String          @id @default(uuid())
   createdAt DateTime        @default(now())
@@ -43,12 +36,13 @@ model Player {
   username  String
   password  String
   accounts  PlayerAccount[]
-  games     Game[]
+  game      Game[]          @relation("PastGames")
   rounds    Round[]
   language  String          @default("Fr")
   Token     Token[]
 
-  activeGame ActiveGame?
+  activeGame   Game?   @relation("ActiveGame", fields: [activeGameId], references: [id])
+  activeGameId String? @unique
 }
 
 model PlayerAccount {
@@ -84,35 +78,28 @@ model Operator {
 }
 
 model Game {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  date      DateTime?
-
-  player   Player? @relation(fields: [playerId], references: [id])
-  playerId String?
-
-  map   Map?    @relation(fields: [mapId], references: [id])
-  mapId String?
-
-  mode   GameMode? @relation(fields: [modeId], references: [id])
-  modeId String?
-
-  platform   Platform? @relation(fields: [platformId], references: [id])
-  platformId String?
-
+  id            String         @id @default(uuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  date          DateTime?
+  player        Player?        @relation("PastGames", fields: [playerId], references: [id])
+  playerId      String?
+  map           Map?           @relation(fields: [mapId], references: [id])
+  mapId         String?
+  mode          GameMode?      @relation(fields: [modeId], references: [id])
+  modeId        String?
+  platform      Platform?      @relation(fields: [platformId], references: [id])
+  platformId    String?
   account       PlayerAccount? @relation(fields: [accountId], references: [id])
   accountId     String?
   playerScore   Int?           @default(0)
   opponentScore Int?           @default(0)
-  // result        Result?        @relation(fields: [resultId], references: [id])
-  // resultId      String?
   status        String?
   overtime      Boolean?       @default(false)
   roundNumber   Int?           @default(0)
   rounds        Round[]
   isFinished    Boolean        @default(false)
-  activeGames   ActiveGame[]
+  activePlayer  Player?        @relation("ActiveGame")
 
   @@index([playerId])
   @@index([mapId])
@@ -157,12 +144,4 @@ model Token {
   tokenValue String   @unique
   expiresAt  DateTime
   createdAt  DateTime @default(now())
-}
-
-model ActiveGame {
-  id       String @id @default(uuid())
-  game     Game   @relation(fields: [gameId], references: [id])
-  gameId   String
-  player   Player @relation(fields: [playerId], references: [id])
-  playerId String @unique
 }

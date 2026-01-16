@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 
-import prisma from '../../prisma/prismaClient.js';
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
 import dotenv from 'dotenv'
 dotenv.config()
 // require("dotenv").config();
@@ -9,14 +11,15 @@ import generateAndSetAccessToken from './functionsMiddleware.js'
 
 const authMiddleware = {
   async decodeJWT(req, res, next) {    
+
     const { access_token, refresh_token } = req.cookies;
-    let currentAccessToken = access_token;
+
+    let accessToken = access_token;
     let needsTokenRefresh = false;
 
-
-    if (currentAccessToken) {
+    if (accessToken) {
       try {
-        const decoded = jwt.verify(currentAccessToken, process.env.JWT_SECRET);
+        const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
         req.user = decoded;
         return next(); 
       } catch (error) {
@@ -33,25 +36,29 @@ const authMiddleware = {
         }
       }
     } else {
+      
+      
       needsTokenRefresh = true;
     }
-
-
     if (needsTokenRefresh) {
+      
       if (!refresh_token) {
         console.warn("Authentification: Aucun Refresh Token trouvé.");
         return res.status(401).json({
           message: "Accès refusé : Aucun token d'authentification valide fourni.",
         });
       }
+    
 
-      try {
+      try { 
+        
         const decodedRefreshToken = jwt.verify(
           refresh_token,
           process.env.REFRESH_SECRET
         );
       
-        
+       
+     
       
         if (!decodedRefreshToken.rid) {
           console.error("Refresh Token ne contient pas de 'rid'.");
@@ -68,6 +75,7 @@ const authMiddleware = {
             isRevoked: true 
           }
         });
+
 
        
         if (!refreshTokenRecord || refreshTokenRecord.isRevoked === true) {
@@ -94,9 +102,11 @@ const authMiddleware = {
 
         const newAccessToken = generateAndSetAccessToken(payload, res);
 
-     
+  
+        
         const decoded = jwt.verify(newAccessToken, process.env.JWT_SECRET);
         req.user = decoded;
+
 
         return next(); 
       } catch (error) {
@@ -107,9 +117,9 @@ const authMiddleware = {
       }
     }
 
-    return res.status(401).json({
-      message: "Accès refusé : Authentification impossible.",
-    });
+    // return res.status(401).json({
+    //   message: "Accès refusé : Authentification impossible.",
+    // });
   },
 };
 

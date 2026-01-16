@@ -1,0 +1,438 @@
+openapi: 3.0.3
+info:
+  title: R6Tracker API
+  version: 1.0.0
+  description: API backend pour R6Tracker — gestion des joueurs, parties, rounds, opérateurs, maps et modes de jeu.
+servers:
+  - url: http://localhost:5000
+    description: Local development
+  - url: https://api.r6tracker.example.com
+    description: Production (remplacer par l'URL réelle)
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: |-
+        Le backend utilise des cookies `access_token` et `refresh_token` pour l'authentification.
+        Les endpoints sécurisés attendent `access_token` en cookie; la rotation peut utiliser `refresh_token`.
+  schemas:
+    Player:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        language:
+          type: string
+        activeGameId:
+          type: string
+      required: [id, email]
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: string
+        playerId:
+          type: string
+        mapId:
+          type: string
+        modeId:
+          type: string
+        platformId:
+          type: string
+        playerScore:
+          type: integer
+        opponentScore:
+          type: integer
+        isFinished:
+          type: boolean
+
+    Round:
+      type: object
+      properties:
+        id:
+          type: string
+        gameId:
+          type: string
+        roundNumber:
+          type: integer
+        sideId:
+          type: string
+        operatorId:
+          type: string
+        kills:
+          type: integer
+        assists:
+          type: integer
+        death:
+          type: boolean
+
+    Map:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameFr:
+          type: string
+        url:
+          type: string
+
+    Operator:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sideId:
+          type: string
+        image:
+          type: string
+        icon:
+          type: string
+
+paths:
+  /api/auth/me:
+    get:
+      summary: Récupère le profil de l'utilisateur connecté
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Profil utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '401':
+          description: Non authentifié
+
+  /api/player/signup:
+    post:
+      summary: Crée un nouveau joueur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Joueur créé
+        '400':
+          description: Données invalides
+
+  /api/player/login:
+    post:
+      summary: Authentifie un joueur (définit des cookies access/refresh)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authentification réussie (cookies envoyés)
+        '401':
+          description: Identifiants invalides
+
+  /api/player/logout:
+    post:
+      summary: Logout (supprime cookies côté serveur)
+      responses:
+        '200':
+          description: Déconnecté
+
+  /api/player/findById/playerId/{playerId}:
+    get:
+      summary: Récupère un joueur par son ID
+      parameters:
+        - name: playerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Joueur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '404':
+          description: Non trouvé
+
+  /api/game/create:
+    post:
+      summary: Crée une partie pour l'utilisateur connecté
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mapId:
+                  type: string
+                modeId:
+                  type: string
+                platformId:
+                  type: string
+                accountId:
+                  type: string
+                date:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Partie créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '401':
+          description: Non authentifié
+
+  /api/game/update/{gameId}:
+    put:
+      summary: Met à jour une partie
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                playerScore:
+                  type: integer
+                opponentScore:
+                  type: integer
+                isFinished:
+                  type: boolean
+      responses:
+        '200':
+          description: Partie mise à jour
+        '401':
+          description: Non authentifié
+
+  /api/game/findByPlayerId:
+    get:
+      summary: Récupère la partie associée au joueur connecté
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Partie(s) du joueur
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+
+  /api/game/findGamesByPlayerId:
+    get:
+      summary: Récupère l'historique des parties pour le joueur connecté
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Liste de parties
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Game'
+
+  /api/game/findAll:
+    get:
+      summary: Récupère toutes les parties (admin)
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Liste de toutes les parties
+
+  /api/game/{gameId}:
+    get:
+      summary: Récupère une partie par ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Partie trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+        '404':
+          description: Non trouvé
+
+  /api/gameMode/getAll:
+    get:
+      summary: Récupère tous les modes de jeu
+      responses:
+        '200':
+          description: Liste des game modes
+
+  /api/map/getAll:
+    get:
+      summary: Récupère toutes les maps
+      responses:
+        '200':
+          description: Liste des maps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Map'
+
+  /api/operator/getAll:
+    get:
+      summary: Récupère tous les opérateurs
+      responses:
+        '200':
+          description: Liste des opérateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Operator'
+
+  /api/operator/getAllOperatorsBySide/{side}:
+    get:
+      summary: Récupère les opérateurs d'un côté (attaque/défense)
+      parameters:
+        - name: side
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des opérateurs filtrés
+
+  /api/round/create:
+    post:
+      summary: Crée un round lié à une partie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gameId:
+                  type: string
+                roundNumber:
+                  type: integer
+                sideId:
+                  type: string
+                operatorId:
+                  type: string
+                kills:
+                  type: integer
+                assists:
+                  type: integer
+                death:
+                  type: boolean
+      responses:
+        '201':
+          description: Round créé
+
+  /api/round/update/{roundId}:
+    put:
+      summary: Met à jour un round
+      parameters:
+        - name: roundId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kills:
+                  type: integer
+                assists:
+                  type: integer
+                death:
+                  type: boolean
+                roundResult:
+                  type: string
+      responses:
+        '200':
+          description: Round mis à jour
+
+  /api/round/{gameId}:
+    get:
+      summary: Récupère les rounds / stats d'une partie
+      parameters:
+        - name: gameId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste des rounds
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Round'
+
+tags:
+  - name: auth
+  - name: player
+  - name: game
+  - name: round
+  - name: map
+  - name: operator
+  - name: gameMode

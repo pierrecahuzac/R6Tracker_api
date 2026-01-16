@@ -1,7 +1,9 @@
-import express from "express";
+import {createRouter} from '../../createRouter.js'
+const router = createRouter()
+
 import GameController from "./controller.js";
 
-const router = express.Router();
+
 
 router.get(
   "/getAll",

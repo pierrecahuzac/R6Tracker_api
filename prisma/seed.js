@@ -1,13 +1,13 @@
-const { PrismaClient } = require("@prisma/client");
+import  { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const datas = require("./data.json");
+import datas from "./data.json" with { type: "json" };
 
 const seedDB = async () => {
 
-
   // Création des plate-formes
+  
   await prisma.platform.createMany({
     data: datas.platform,
     skipDuplicates: true,

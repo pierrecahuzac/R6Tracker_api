@@ -1,12 +1,10 @@
-import  { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
+const prisma = new PrismaClient({
+  adapter: {
+    provider: 'postgresql',
+    url: process.env.DATABASE_URL,
+  },
+});
 
-
-    
-    
-const Prisma = new PrismaClient()
-
-
-
-
-export default Prisma
+export default prisma;
