@@ -6,6 +6,8 @@ const AuthController = {
     try {
       const playerId = req.user.sub;
       const result = await AuthService.checkToken(playerId);
+      
+      // On garde la version propre utilisant le helper de réponse
       return respondSuccess(res, result, "Player connected");
     } catch (error) {
       console.log(error);

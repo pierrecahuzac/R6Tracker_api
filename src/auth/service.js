@@ -12,9 +12,7 @@ const AuthService = {
     }
 
     return {
-      isLoggedIn: true,
-      playerId,
-      username: player.username,
+      isLoggedIn: true,      
       player: {
         id: player.id,
         email: player.email,
